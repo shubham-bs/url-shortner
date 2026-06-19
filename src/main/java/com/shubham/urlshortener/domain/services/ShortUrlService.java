@@ -2,19 +2,24 @@ package com.shubham.urlshortener.domain.services;
 
 import com.shubham.urlshortener.domain.entities.ShortUrl;
 import com.shubham.urlshortener.domain.repositories.ShortUrlRepository;
+import com.shubham.urlshortener.domain.models.ShortUrlDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class ShortUrlService {
-    private final ShortUrlRepository shortUrlRepository;
 
-    public ShortUrlService(ShortUrlRepository shortUrlRepository) {
+    private final ShortUrlRepository shortUrlRepository;
+    private final EntityMapper entityMapper;
+
+    public ShortUrlService(ShortUrlRepository shortUrlRepository, EntityMapper entityMapper) {
         this.shortUrlRepository = shortUrlRepository;
+        this.entityMapper = entityMapper;
     }
 
-    public List<ShortUrl> findAllPublicShortUrls() {
-        return shortUrlRepository.findPublicShortUrls();
+    public List<ShortUrlDto> findAllPublicShortUrls() {
+        return shortUrlRepository.findPublicShortUrls()
+                .stream().map(entityMapper::toShortUrlDto).toList();
     }
 }

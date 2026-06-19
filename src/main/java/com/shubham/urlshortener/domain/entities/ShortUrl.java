@@ -17,7 +17,7 @@ public class ShortUrl {
     @Column(name = "short_key", nullable = false, length = 10)
     private String shortKey;
 
-    @Column(name = "original_url", nullable = false, length = 2048)
+    @Column(name = "original_url", nullable = false, length = Integer.MAX_VALUE)
     private String originalUrl;
 
     @ColumnDefault("false")
