@@ -2,6 +2,7 @@ package com.shubham.urlshortener.web.controllers;
 
 import com.shubham.urlshortener.ApplicationProperties;
 import com.shubham.urlshortener.domain.entities.ShortUrl;
+import com.shubham.urlshortener.domain.exceptions.ShortUrlNotFoundException;
 import com.shubham.urlshortener.domain.models.CreateShortURLCmd;
 import com.shubham.urlshortener.domain.models.ShortUrlDto;
 import com.shubham.urlshortener.domain.services.ShortUrlService;
@@ -12,10 +13,12 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class HomeController {
@@ -64,6 +67,15 @@ public class HomeController {
         return "redirect:/";
     }
 
+    @GetMapping("/s/{shortKey}")
+    String redirectToOriginalUrl(@PathVariable String shortKey){
+        Optional<ShortUrlDto> shortUrlDtoOptional = shortUrlService.accessShortUrl(shortKey);
+        if(shortUrlDtoOptional.isEmpty()){
+            throw new ShortUrlNotFoundException("Invalid short key" + shortKey);
+        }
 
+        ShortUrlDto shortUrlDto = shortUrlDtoOptional.get();
+        return "redirect:" + shortUrlDto.originalUrl();
+    }
 
 }
