@@ -1,28 +1,69 @@
 package com.shubham.urlshortener.web.controllers;
 
+import com.shubham.urlshortener.ApplicationProperties;
 import com.shubham.urlshortener.domain.entities.ShortUrl;
+import com.shubham.urlshortener.domain.models.CreateShortURLCmd;
 import com.shubham.urlshortener.domain.models.ShortUrlDto;
 import com.shubham.urlshortener.domain.services.ShortUrlService;
+import com.shubham.urlshortener.web.controllers.dtos.CreateShortUrlForm;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
 @Controller
 public class HomeController {
     private final ShortUrlService shortUrlService;
+    private final ApplicationProperties properties;
 
-    public HomeController(ShortUrlService shortUrlService) {
+    public HomeController(ShortUrlService shortUrlService, ApplicationProperties properties) {
         this.shortUrlService = shortUrlService;
+        this.properties = properties;
     }
 
     @GetMapping("/")
     public String home(Model model) {
         List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls();
         model.addAttribute("shortUrls", shortUrls);
-        model.addAttribute("baseUrl", "http://localhost:8080");
+        model.addAttribute("baseUrl", properties.baseUrl());
+        model.addAttribute("CreateShortUrlForm", new CreateShortUrlForm(""));
         return "index";
     }
+
+    @PostMapping("/short-urls")
+    String createShortUrl(@ModelAttribute("createShortUrlsForm") @Valid CreateShortUrlForm form,
+                          BindingResult bindingResult,
+                          RedirectAttributes redirectAttributes,
+                          Model model) {
+        if (bindingResult.hasErrors()) {
+            List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls();
+            model.addAttribute("shortUrls", shortUrls);
+            model.addAttribute("baseUrl", properties.baseUrl());
+            return "index";
+        }
+
+        try{
+
+            CreateShortURLCmd cmd= new CreateShortURLCmd(form.originalUrl());
+            var shortUrlDto = shortUrlService.createShortUrl(cmd);
+            redirectAttributes.addFlashAttribute("successMessage", "Short URL created " +
+                    "successfully   " + properties.baseUrl()+ "/s/" + shortUrlDto.shortKey());
+
+        } catch (Exception e){
+
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to create Short URL");
+
+        }
+
+        return "redirect:/";
+    }
+
+
 
 }
