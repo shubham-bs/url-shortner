@@ -2,6 +2,7 @@ package com.shubham.urlshortener.web.controllers;
 
 import com.shubham.urlshortener.ApplicationProperties;
 import com.shubham.urlshortener.domain.entities.ShortUrl;
+import com.shubham.urlshortener.domain.entities.User;
 import com.shubham.urlshortener.domain.exceptions.ShortUrlNotFoundException;
 import com.shubham.urlshortener.domain.models.CreateShortURLCmd;
 import com.shubham.urlshortener.domain.models.ShortUrlDto;
@@ -24,14 +25,18 @@ import java.util.Optional;
 public class HomeController {
     private final ShortUrlService shortUrlService;
     private final ApplicationProperties properties;
+    private final SecurityUtils securityUtils;
 
-    public HomeController(ShortUrlService shortUrlService, ApplicationProperties properties) {
+    public HomeController(ShortUrlService shortUrlService, ApplicationProperties properties, SecurityUtils securityUtils) {
         this.shortUrlService = shortUrlService;
         this.properties = properties;
+        this.securityUtils = securityUtils;
     }
 
     @GetMapping("/")
     public String home(Model model) {
+        User currentUser = securityUtils.getCurrentUser();
+
         List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls();
         model.addAttribute("shortUrls", shortUrls);
         model.addAttribute("baseUrl", properties.baseUrl());
@@ -76,6 +81,11 @@ public class HomeController {
 
         ShortUrlDto shortUrlDto = shortUrlDtoOptional.get();
         return "redirect:" + shortUrlDto.originalUrl();
+    }
+
+    @GetMapping("/login")
+    String loginform(){
+        return "login";
     }
 
 }
