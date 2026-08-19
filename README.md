@@ -1,131 +1,384 @@
 # URL Shortener
 
-A URL shortening service built with Spring Boot and PostgreSQL.
+A production-style URL shortening service built with Spring Boot and PostgreSQL.
 
-The project is being developed incrementally to explore backend application design, layered architecture, database migrations, request handling, validation, exception handling, and production-style development practices.
+The project demonstrates backend application development using layered architecture, authentication, database persistence, validation, exception handling, Docker, and Docker Compose.
 
 ---
 
-## Current Features
+## Features
 
-* Create short URLs
-* List publicly available URLs
-* Redirect short URLs to their original destination
-* Form validation
-* Custom 404 page
-* Global exception handling
-* Flyway database migrations
+- Create short URLs
+- Redirect short URLs
+- User authentication
+- User owned URLs
+- Public and private URLs
+- URL expiration
+- Click tracking
+- Pagination
+- Delete user owned URLs
+- URL validation
+- Form validation
+- Global exception handling
+- Custom error pages
+- Flyway database migrations
+- Docker containerization
+- Docker Compose
+- Docker Hub image deployment
 
 ---
 
 ## Tech Stack
 
-* Java 21
-* Spring Boot
-* Thymeleaf
-* Spring Data JPA
-* PostgreSQL
-* Flyway
-* Maven
+| Technology | Purpose                          |
+|---|----------------------------------|
+| Java 21 | Backend language                 |
+| Spring Boot | Application framework            |
+| Spring Security | Authentication and authorization |
+| Thymeleaf | Server side UI                   |
+| Spring Data JPA | Database access                  |
+| PostgreSQL | Relational database              |
+| Flyway | Database migrations              |
+| Maven | Build and dependency management  |
+| Docker | Application containerization     |
+| Docker Compose | Multi container setup            |
+| Docker Hub | Container image hosting          |
 
 ---
 
-## Architecture
+### Architecture
 
-The application follows a layered architecture:
+The application follows a layered architecture with Spring Security handling authentication and authorization.
 
+```text
 Browser
-↓
+   ↓
 Thymeleaf
-↓
+   ↓
+Spring Security
+   ↓
 Controller
-↓
+   ↓
 Service
-↓
+   ↓
 Repository
-↓
+   ↓
 PostgreSQL
+```
 
-See `ARCHITECTURE.md` for detailed request flows and design decisions.
+### Main Components
+
+```text
+src/main/java/com/shubham/urlshortener
+│
+├── config
+│   └── WebSecurityConfig
+│
+├── domain
+│   ├── entities
+│   │   ├── ShortUrl
+│   │   └── User
+│   │
+│   ├── exceptions
+│   │   └── ShortUrlNotFoundException
+│   │
+│   └── models
+│       ├── CreateShortUrlCmd
+│       ├── CreateUserCmd
+│       ├── PagedResult
+│       ├── Role
+│       ├── ShortUrlDto
+│       └── UserDto
+│
+├── repositories
+│   ├── ShortUrlRepository
+│   └── UserRepository
+│
+├── services
+│   ├── EntityMapper
+│   ├── SecurityUserDetailsService
+│   ├── ShortUrlService
+│   ├── UrlExistenceValidator
+│   └── UserService
+│
+└── web
+    ├── controllers
+    │   ├── AdminController
+    │   ├── HomeController
+    │   └── UserController
+    │
+    ├── dtos
+    │   ├── CreateShortUrlForm
+    │   └── RegisterUserRequest
+    │
+    ├── GlobalExceptionHandler
+    └── SecurityUtils
+```
+
+### Request Flow
+
+#### Homepage
+
+```text
+GET /
+   ↓
+HomeController
+   ↓
+ShortUrlService
+   ↓
+ShortUrlRepository
+   ↓
+PostgreSQL
+   ↓
+Thymeleaf
+   ↓
+Browser
+```
+
+#### Create Short URL
+
+```text
+POST /shorturls
+   ↓
+CreateShortUrlForm
+   ↓
+HomeController
+   ↓
+CreateShortURLCmd
+   ↓
+ShortUrlService
+   ↓
+ShortUrlRepository
+   ↓
+PostgreSQL
+```
+
+#### Redirect Short URL
+
+```text
+GET /{shortKey}
+   ↓
+HomeController
+   ↓
+ShortUrlService
+   ↓
+ShortUrlRepository
+   ↓
+PostgreSQL
+   ↓
+HTTP Redirect
+```
+
+If the short URL cannot be found or cannot be accessed, the application handles the error through its global exception handling and custom error page.
+
+### Design Principles
+
+- Controllers coordinate requests and responses.
+- Business logic is kept inside services.
+- Repositories handle persistence.
+- DTOs and command objects separate web layer input from servicelayer logic.
+- Domain entities are not exposed directly to the web layer.
+- Database schema changes are managed through Flyway migrations.
 
 ---
 
-## Project Documentation
+# Running with Docker
 
-* `ARCHITECTURE.md` → System design, request flows, and architectural decisions
-* `JOURNAL.md` → Project evolution and milestone tracking
+Docker is the recommended way to run the application.
 
----
+You do not need to install Java or PostgreSQL separately when using the Docker setup.
 
-## Running Locally
+## Prerequisites
 
-### Clone Repository
+- Git
+- Docker Desktop
+
+## 1. Clone the repository
 
 ```bash
-git clone <repo-url>
-cd urlshortener
+git clone https://github.com/shubham-bs/url-shortner.git
+cd url-shortner
 ```
 
-### Start PostgreSQL
+## 2. Start the application
 
-Configure database settings in:
-
-```properties
-src/main/resources/application.properties
+```bash
+docker compose -f Docker/compose.yaml up -d
 ```
 
-### Run Application
+Docker Compose starts:
+
+- Spring Boot application
+- PostgreSQL database
+
+The Spring Boot container uses:
+
+```text
+bag0dock/urlshortener:latest
+```
+
+## 3. Open the application
+
+Visit:
+
+```text
+http://localhost:8086
+```
+
+## 4. Check running containers
+
+```bash
+docker compose -f Docker/compose.yaml ps
+```
+
+Expected containers:
+
+```text
+spring-boot-url-shortener
+urlshortener-postgres
+```
+
+## 5. View application logs
+
+```bash
+docker compose -f Docker/compose.yaml logs -f spring-boot-url-shortener
+```
+
+## 6. Stop the application
+
+```bash
+docker compose -f Docker/compose.yaml down
+```
+
+---
+
+# Running Locally with Maven
+
+For development, the application can also be run directly with Maven.
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Application runs on:
+PostgreSQL configuration is located at:
 
 ```text
-http://localhost:8080
+src/main/resources/application.properties
+```
+
+Run the test suite:
+
+```bash
+./mvnw clean test
 ```
 
 ---
 
-## Roadmap
+# Database
 
-### Core Features
+PostgreSQL is used as the primary database.
 
-* User authentication
-* User-owned URLs
-* Custom aliases
-* URL expiration
+Flyway manages database schema migrations.
 
-### Analytics
+Migration files are located at:
 
-* Click tracking
-* Usage statistics
-* Top URLs dashboard
+```text
+src/main/resources/db/migration
+```
 
-### Enhancements
+When running through Docker Compose, the Spring Boot application connects to PostgreSQL through the Docker Compose network.
 
-* QR code generation
-* Search and filtering
-* URL management dashboard
+```text
+Spring Boot Application
+          │
+          │ Docker Network
+          ▼
+      PostgreSQL
+```
 
 ---
 
-## Current Status
+# Docker Image
 
-Completed
+The application is packaged as a Docker image using Spring Boot's build-image support.
 
-* Project setup
-* Database integration
-* Flyway migrations
-* Homepage
-* URL creation workflow
-* URL redirection
-* Global exception handling
-* Custom error pages
+Docker Hub image:
 
-Next Focus
+```text
+bag0dock/urlshortener:latest
+```
 
-* Authentication
-* User ownership
-* Analytics
+Build the image locally:
+
+```bash
+./mvnw spring-boot:build-image
+```
+
+The Docker Compose configuration is located at:
+
+```text
+Docker/compose.yaml
+```
+
+---
+
+# Project Structure
+
+```text
+urlshortner/
+│
+├── Docker/
+│   └── compose.yaml
+│
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   └── resources/
+│   │
+│   └── test/
+│
+├── ARCHITECTURE.md
+├── README.md
+├── pom.xml
+├── mvnw
+└── mvnw.cmd
+```
+
+---
+
+# Current Status
+
+## Completed
+
+- Project setup
+- Layered architecture
+- PostgreSQL integration
+- Flyway migrations
+- Homepage
+- URL creation
+- URL validation
+- URL redirection
+- Global exception handling
+- Custom error pages
+- User authentication
+- User ownership
+- Public/private URLs
+- URL expiration
+- Click tracking
+- Pagination
+- URL deletion
+- Docker image creation
+- Docker Compose setup
+- Docker Hub deployment
+
+---
+
+# Future Improvements
+
+- Custom URL aliases
+- Analytics dashboard
+- Search and filtering
+- QR code generation
+- Rate limiting
+- Production deployment
+- Monitoring and observability

@@ -110,7 +110,7 @@ public class ShortUrlService {
         if(shortUrl.getExpiresAt() != null && shortUrl.getExpiresAt().isBefore(Instant.now())) {
             return Optional.empty();
         }
-        if(shortUrl.getIsPrivate() != null && shortUrl.getCreatedBy() != null
+        if(shortUrl.getIsPrivate() != null && shortUrl.getIsPrivate() && shortUrl.getCreatedBy() != null
                 && !Objects.equals(shortUrl.getCreatedBy().getId(), userId)) {
             return Optional.empty();
         }
