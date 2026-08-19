@@ -1,4 +1,4 @@
-package com.shubham.urlshortener.web.controllers.dtos;
+package com.shubham.urlshortener.web.dtos;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

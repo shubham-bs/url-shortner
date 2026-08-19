@@ -1,4 +1,4 @@
-package com.shubham.urlshortener.web.controllers;
+package com.shubham.urlshortener.web;
 
 import com.shubham.urlshortener.domain.exceptions.ShortUrlNotFoundException;
 import org.slf4j.Logger;

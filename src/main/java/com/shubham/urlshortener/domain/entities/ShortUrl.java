@@ -79,11 +79,11 @@ public class ShortUrl {
         this.expiresAt = expiresAt;
     }
 
-    public User getCreatedBy() {
+    public com.shubham.urlshortener.domain.entities.User getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(User createdBy) {
+    public void setCreatedBy(com.shubham.urlshortener.domain.entities.User createdBy) {
         this.createdBy = createdBy;
     }
 
