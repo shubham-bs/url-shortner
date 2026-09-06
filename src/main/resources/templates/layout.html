@@ -1,3 +1,4 @@
+<!--
 <!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
@@ -67,11 +68,392 @@
   </div>
 
   <div layout:fragment="content">
-    <!-- Your Page Content Here -->
+
   </div>
 
 </div>
 
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
+
+-->
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Short. · URL Shortener</title>
+
+  <link rel="stylesheet"
+        th:href="@{/css/styles.css}">
+
+</head>
+
+
+<body>
+
+<!-- =====================================================
+     NAVIGATION
+     ===================================================== -->
+
+<header class="site-header">
+
+  <nav class="nav-container">
+
+    <!-- BRAND -->
+
+    <a class="brand"
+       th:href="@{/}">
+
+            <span class="brand-mark">
+                ↗
+            </span>
+
+      <span>
+                short.
+            </span>
+
+    </a>
+
+
+    <!-- NAVIGATION LINKS -->
+
+    <div class="nav-links">
+
+      <a class="nav-link"
+         th:href="@{/}">
+        Home
+      </a>
+
+      <a class="nav-link"
+         sec:authorize="isAuthenticated()"
+         th:href="@{/my-urls}">
+        My URLs
+      </a>
+
+      <a class="nav-link"
+         sec:authorize="hasRole('ADMIN')"
+         th:href="@{/admin/dashboard}">
+        Admin
+      </a>
+
+    </div>
+
+
+    <!-- RIGHT SIDE -->
+
+    <div class="nav-actions">
+
+      <!-- ANONYMOUS -->
+
+      <div class="auth-actions"
+           sec:authorize="isAnonymous()">
+
+        <a class="nav-login"
+           th:href="@{/login}">
+          Log in
+        </a>
+
+        <a class="button button-small"
+           th:href="@{/register}">
+          Get started
+        </a>
+
+      </div>
+
+
+      <!-- AUTHENTICATED -->
+
+      <div class="user-actions"
+           sec:authorize="isAuthenticated()">
+
+                <span class="user-name">
+
+                    <span class="user-dot"></span>
+
+                    <span sec:authentication="name">
+                        user@example.com
+                    </span>
+
+                </span>
+
+
+        <form th:action="@{/logout}"
+              method="post">
+
+          <button
+                  type="submit"
+                  class="logout-button">
+            Log out
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </nav>
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN
+     ===================================================== -->
+
+<main class="main-content">
+
+
+  <!-- =================================================
+       SUCCESS MESSAGE
+       ================================================= -->
+
+  <div
+          th:if="${successMessage}"
+          class="flash flash-success"
+          role="status">
+
+    <div class="flash-success-content">
+
+      <div class="flash-success-icon">
+        ✓
+      </div>
+
+      <div class="flash-success-body">
+
+        <div class="flash-success-title">
+          Short URL created successfully!
+        </div>
+
+        <button
+                type="button"
+                class="flash-url"
+                id="successUrl"
+                th:text="${successMessage}">
+          Short URL
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="flash-success-actions">
+
+      <button
+              type="button"
+              class="copy-link-button"
+              id="copySuccessUrl">
+
+                <span class="copy-icon">
+                    □
+                </span>
+
+        <span>
+                    Copy link
+                </span>
+
+      </button>
+
+
+      <button
+              type="button"
+              class="flash-close"
+              aria-label="Close"
+              onclick="this.closest('.flash').remove()">
+        ×
+      </button>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =================================================
+       ERROR MESSAGE
+       ================================================= -->
+
+  <div
+          th:if="${errorMessage}"
+          class="flash flash-error"
+          role="alert">
+
+    <div class="flash-error-content">
+
+      <div class="flash-error-icon">
+        !
+      </div>
+
+      <span th:text="${errorMessage}">
+                Something went wrong.
+            </span>
+
+    </div>
+
+
+    <button
+            type="button"
+            class="flash-close"
+            aria-label="Close"
+            onclick="this.closest('.flash').remove()">
+      ×
+    </button>
+
+  </div>
+
+
+
+  <!-- =================================================
+       PAGE CONTENT
+       ================================================= -->
+
+  <div layout:fragment="content">
+    <!-- Page content -->
+  </div>
+
+</main>
+
+
+
+<!-- =====================================================
+     FOOTER
+     ===================================================== -->
+
+<footer class="site-footer">
+
+  <div class="footer-container">
+
+        <span>
+            short.
+        </span>
+
+    <span>
+            Simple links. No clutter.
+        </span>
+
+  </div>
+
+</footer>
+
+
+
+<!-- =====================================================
+     COPY SUCCESS URL
+     ===================================================== -->
+
+<script>
+
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const copyButton =
+            document.getElementById("copySuccessUrl");
+
+    const successUrl =
+            document.getElementById("successUrl");
+
+
+    if (!copyButton || !successUrl) {
+      return;
+    }
+
+
+    copyButton.addEventListener("click", async function () {
+
+      const message = successUrl.textContent.trim();
+
+      /*
+       * The backend currently sends:
+       *
+       * Short URL created successfully http://localhost:8086/s/xxxxx
+       *
+       * Extract only the URL for copying.
+       */
+
+      const urlMatch =
+              message.match(/https?:\/\/[^\s]+/);
+
+      const url =
+              urlMatch ? urlMatch[0] : message;
+
+
+      try {
+
+        await navigator.clipboard.writeText(url);
+
+        copyButton.classList.add("copied");
+
+        copyButton.querySelector("span:last-child")
+                .textContent = "Copied!";
+
+
+        setTimeout(function () {
+
+          copyButton.classList.remove("copied");
+
+          copyButton.querySelector("span:last-child")
+                  .textContent = "Copy link";
+
+        }, 1800);
+
+      } catch (error) {
+
+        /*
+         * Fallback for browsers where Clipboard API
+         * is unavailable.
+         */
+
+        const textarea =
+                document.createElement("textarea");
+
+        textarea.value = url;
+
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+
+        document.body.appendChild(textarea);
+
+        textarea.select();
+
+        document.execCommand("copy");
+
+        textarea.remove();
+
+
+        copyButton.classList.add("copied");
+
+        copyButton.querySelector("span:last-child")
+                .textContent = "Copied!";
+
+
+        setTimeout(function () {
+
+          copyButton.classList.remove("copied");
+
+          copyButton.querySelector("span:last-child")
+                  .textContent = "Copy link";
+
+        }, 1800);
+
+      }
+
+    });
+
+  });
+
+</script>
+
+
 </body>
 </html>

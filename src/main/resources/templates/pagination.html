@@ -1,3 +1,4 @@
+<!--
 <nav th:if="${shortUrls.totalPages > 1}">
     <ul class="pagination justify-content-center">
         <li class="page-item" th:classappend="${shortUrls.isFirst ? 'disabled' : ''}">
@@ -27,4 +28,32 @@
             </a>
         </li>
     </ul>
+</nav>
+
+-->
+<nav
+        class="pagination"
+        th:if="${shortUrls.totalPages > 1}"
+        aria-label="Pagination">
+
+    <a
+            th:if="${!shortUrls.isFirst}"
+            th:href="@{${paginationUrl}(page=${shortUrls.pageNumber - 1})}">
+        ← Previous
+    </a>
+
+
+    <span
+            class="pagination-current"
+            th:text="${shortUrls.pageNumber + ' / ' + shortUrls.totalPages}">
+        1 / 2
+    </span>
+
+
+    <a
+            th:if="${!shortUrls.isLast}"
+            th:href="@{${paginationUrl}(page=${shortUrls.pageNumber + 1})}">
+        Next →
+    </a>
+
 </nav>

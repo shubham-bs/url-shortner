@@ -1,3 +1,4 @@
+<!---
 <!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
@@ -85,5 +86,258 @@
 
     </div>
 </div>
+</body>
+</html>
+
+-->
+
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<head>
+    <title>Short. · URL Shortener</title>
+</head>
+
+<body>
+
+<div layout:fragment="content">
+
+    <!-- =====================================================
+         HERO
+         ===================================================== -->
+
+    <section class="hero">
+
+        <div class="hero-eyebrow">
+            <span class="hero-eyebrow-dot"></span>
+            Simple URL shortening
+        </div>
+
+        <h1>
+            Long URLs.<br>
+            <span>Made short.</span>
+        </h1>
+
+        <p class="hero-description">
+            Create clean, shareable links in seconds.
+            No clutter. No complicated setup.
+        </p>
+
+
+        <!-- =================================================
+             SHORTENER
+             ================================================= -->
+
+        <div class="shortener-wrapper">
+
+            <form th:action="@{/short-urls}"
+                  method="post"
+                  th:object="${createShortUrlForm}"
+                  class="shortener-form">
+
+                <!-- MAIN INPUT -->
+                <div class="shortener-main">
+
+                    <input
+                            type="text"
+                            id="originalUrl"
+                            class="url-input"
+                            th:field="*{originalUrl}"
+                            placeholder="Paste your long URL here..."
+                            autocomplete="url"
+                            autofocus>
+
+                    <button
+                            type="submit"
+                            class="shortener-submit">
+                        Shorten URL
+                    </button>
+
+                </div>
+
+
+                <!-- VALIDATION ERROR -->
+                <div
+                        class="field-error"
+                        th:if="${#fields.hasErrors('originalUrl')}"
+                        th:errors="*{originalUrl}">
+                </div>
+
+
+                <!-- AUTHENTICATED OPTIONS -->
+                <div
+                        class="form-options"
+                        sec:authorize="isAuthenticated()">
+
+                    <label class="option">
+
+                        <input
+                                type="number"
+                                id="expirationInDays"
+                                th:field="*{expirationInDays}"
+                                min="1"
+                                max="365">
+
+                        <span>days until expiration</span>
+
+                    </label>
+
+
+                    <label class="option">
+
+                        <input
+                                type="checkbox"
+                                id="isPrivate"
+                                th:field="*{isPrivate}">
+
+                        <span>Private link</span>
+
+                    </label>
+
+                </div>
+
+            </form>
+
+
+            <p class="hero-note">
+                Sign in to manage your links, set expiration dates and create private URLs.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PUBLIC URLS
+         ===================================================== -->
+
+    <section class="section">
+
+        <div class="section-header">
+
+            <div class="section-title">
+                Recently created links
+            </div>
+
+            <div class="section-subtitle">
+                Public URLs created through Short.
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             EMPTY STATE
+             ================================================= -->
+
+        <div
+                th:if="${shortUrls.data.isEmpty()}"
+                class="empty-state">
+
+            <div class="empty-state-title">
+                No public links yet
+            </div>
+
+            <div class="empty-state-text">
+                Be the first to shorten a URL.
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             URL TABLE
+             ================================================= -->
+
+        <div
+                th:unless="${shortUrls.data.isEmpty()}"
+                class="table-container">
+
+            <table class="url-table">
+
+                <thead>
+
+                <tr>
+                    <th>Short URL</th>
+                    <th>Original URL</th>
+                    <th>Created by</th>
+                    <th>Created</th>
+                    <th>Expires</th>
+                </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                <tr th:each="url : ${shortUrls.data}">
+
+                    <!-- SHORT URL -->
+                    <td>
+
+                        <a
+                                class="short-link"
+                                th:href="@{/s/{key}(key=${url.shortKey})}"
+                                th:text="${baseUrl + '/s/' + url.shortKey}"
+                                target="_blank">
+                        </a>
+
+                    </td>
+
+
+                    <!-- ORIGINAL URL -->
+                    <td>
+
+                        <a
+                                class="original-link"
+                                th:href="${url.originalUrl}"
+                                th:text="${#strings.abbreviate(url.originalUrl, 50)}"
+                                target="_blank">
+                        </a>
+
+                    </td>
+
+
+                    <!-- CREATED BY -->
+                    <td
+                            class="table-muted"
+                            th:text="${url.createdBy != null ? url.createdBy.name : 'Guest'}">
+                    </td>
+
+
+                    <!-- CREATED -->
+                    <td
+                            class="table-muted"
+                            th:text="${#temporals.format(url.createdAt, 'yyyy-MM-dd HH:mm')}">
+                    </td>
+
+
+                    <!-- EXPIRES -->
+                    <td
+                            class="table-muted"
+                            th:text="${url.expiresAt != null ? #temporals.format(url.expiresAt, 'yyyy-MM-dd HH:mm') : 'Never'}">
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+
+            <!-- PAGINATION -->
+            <div th:insert="~{pagination}"></div>
+
+        </div>
+
+    </section>
+
+</div>
+
 </body>
 </html>
